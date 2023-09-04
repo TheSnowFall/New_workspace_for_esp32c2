@@ -12,7 +12,6 @@
 #include "freertos/event_groups.h"
 #include "esp_system.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
 #include "esp_bt.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
@@ -22,9 +21,9 @@
 
 #include <inttypes.h>
 #include "sdkconfig.h"
+#include "my_bt_event_handler.h"
 
 
-#include "my_bt_event_handler.h" // I guess this need to be removed
 
 #define GATTS_TAG "MY_GATTS_DEMO_TAG"
 
@@ -47,17 +46,17 @@
 
 
 
-#define PREPARE_BUF_MAX_SIZE 1024u
+
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 0x40u
 
 
- uint8_t adv_config_done = 0u;
+
 
 #define adv_config_flag      (1u << 0)
 #define scan_rsp_config_flag (1u << 1)
 
 
-
+ uint8_t adv_config_done = 0u;
 
  uint8_t char1_str[] = { 0x11u, 0x22u, 0x33u };
  esp_gatt_char_prop_t a_property = 0u;
@@ -198,7 +197,7 @@ void gatts_profile_b_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gat
 
 
 
- struct gatts_profile_inst gl_profile_tab[PROFILE_NUM] = {
+  struct gatts_profile_inst gl_profile_tab[PROFILE_NUM] = {
 		[PROFILE_A_APP_ID] = { .gatts_cb = gatts_profile_a_event_handler,
 		                       .gatts_if = ESP_GATT_IF_NONE, /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
 		                      },

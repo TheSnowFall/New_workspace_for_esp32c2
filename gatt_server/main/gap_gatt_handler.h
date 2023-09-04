@@ -1,13 +1,12 @@
 /*
- * my_bt_event_handler.h
+ * gatt_handler.h
  *
  *  Created on: Aug 31, 2023
  *      Author: MN
  */
 
-#ifndef MAIN_MY_BT_EVENT_HANDLER_H_
-#define MAIN_MY_BT_EVENT_HANDLER_H_
-
+#ifndef MAIN_GAP_GATT_HANDLER_H_
+#define MAIN_GAP_GATT_HANDLER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,22 +32,9 @@
 
 #define GATTS_TAG "MY_GATTS_DEMO_TAG"
 
-#define PREPARE_BUF_MAX_SIZE 1024u
 
-typedef struct {
-				uint8_t *prepare_buf;
-				int prepare_len;
-			   } prepare_type_env_t;
+void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 
+void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 
-
-void example_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
-
-void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
-
-
-
-
-
-
-#endif /* MAIN_MY_BT_EVENT_HANDLER_H_ */
+#endif /* MAIN_GAP_GATT_HANDLER_H_ */

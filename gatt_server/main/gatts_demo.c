@@ -1,4 +1,5 @@
 //MISRA C Applied
+#include <gap_gatt_handler.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,8 +22,6 @@
 
 #include "my_bt_profile_based_handler.h"
 #include "my_bt_event_handler.h"
-#include "gap_handler.h"
-#include "gatt_handler.h"
 
 
 #define GATTS_TAG "MY_GATTS_DEMO_TAG"
@@ -57,18 +56,6 @@ int received_buffer_length = 0;
 
 
 
-
-
-//  uint8_t raw_scan_rsp_data[] = {
-//    0x0fu, 0x09u, 0x45u, 0x53u, 0x50u, 0x5fu, 0x47u, 0x41u, 0x54u, 0x54u, 0x53u, 0x5fu, 0x44u,
-//    0x45u, 0x4du, 0x4fu
-//};
-
-
-
-
-
-/* One gatt-based profile one app_id and one gatts_if, this array will store the gatts_if returned by ESP_GATTS_REG_EVT */
 
 
 

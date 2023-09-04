@@ -1,4 +1,3 @@
-#include "my_bt_profile_based_handler.h"
 #include "my_bt_event_handler.h"
 
 
