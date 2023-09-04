@@ -37,7 +37,7 @@
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
 #define ESP_APP_ID                  0x55
-#define SAMPLE_DEVICE_NAME          "ESP_GATTS_DEMO"
+#define SAMPLE_DEVICE_NAME          "TUSHAR'S_GATTS_DEMO"
 #define SVC_INST_ID                 0
 
 /* The max length of characteristic value. When the GATT client performs a write or prepare write operation,
@@ -61,7 +61,7 @@ typedef struct {
 
 static prepare_type_env_t prepare_write_env;
 
-#define CONFIG_SET_RAW_ADV_DATA
+//#define CONFIG_SET_RAW_ADV_DATA
 #ifdef CONFIG_SET_RAW_ADV_DATA
 static uint8_t raw_adv_data[] = {
         /* flags */
