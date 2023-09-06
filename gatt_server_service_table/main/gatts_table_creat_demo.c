@@ -1,18 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Unlicense OR CC0-1.0
- */
-
-/****************************************************************************
-*
-* This demo showcases creating a GATT database using a predefined attribute table.
-* It acts as a GATT server and can send adv data, be connected by client.
-* Run the gatt_client demo, the client demo will automatically connect to the gatt_server_service_table demo.
-* Client demo will enable GATT server's notify after connection. The two devices will then exchange
-* data.
-*
-****************************************************************************/
 
 
 #include "freertos/FreeRTOS.h"
@@ -31,8 +16,11 @@
 
 #include "cJSON.h"
 #include "cjson_parser.h"
+#include "wifi_station.h"
 
 #define GATTS_TABLE_TAG "GATTS_TABLE_DEMO"
+
+
 
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
@@ -437,7 +425,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             uint8_t result=BLE_packet_parser( (uint8_t*)temp_buff);
 
             if(result == 1){
-            	printf("Json Parsing successful\n") ;
+            	printf("All tasks inside Json Parsing successful\n") ;
             }
             else{
             	printf("Json Parsing unsuccessful\n");
@@ -586,5 +574,13 @@ void app_main(void)
     esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(500);
     if (local_mtu_ret){
         ESP_LOGE(GATTS_TABLE_TAG, "set local  MTU failed, error code = %x", local_mtu_ret);
+
+
+
+
+
     }
+
+
+
 }

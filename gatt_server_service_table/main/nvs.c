@@ -1,17 +1,17 @@
 #include "nvs.h"
 
-void nvs_init(void) {
-	esp_err_t err = nvs_flash_init();
-	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-		// NVS partition was truncated and needs to be erased
-		// Retry nvs_flash_init
-		ESP_ERROR_CHECK(nvs_flash_erase());
-		err = nvs_flash_init();
-	}
-	ESP_ERROR_CHECK(err);
-}
+//void nvs_init(void) {
+//	esp_err_t err = nvs_flash_init();
+//	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+//		// NVS partition was truncated and needs to be erased
+//		// Retry nvs_flash_init
+//		ESP_ERROR_CHECK(nvs_flash_erase());
+//		err = nvs_flash_init();
+//	}
+//	ESP_ERROR_CHECK(err);
+//}
 
-esp_err_t nvs_variable_save(char *key, char *value,  size_t length) {
+esp_err_t NVS_store_key(char *key, char *value, size_t length) {
 	nvs_handle_t my_handle;
 	esp_err_t err;
 
@@ -39,3 +39,81 @@ esp_err_t nvs_variable_save(char *key, char *value,  size_t length) {
 	nvs_close(my_handle);
 	return ESP_OK;
 }
+
+esp_err_t NVS_read_key(char *key) {
+
+	nvs_handle_t my_handle;
+	esp_err_t err;
+
+	// Open
+	err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &my_handle);
+	if (err != ESP_OK)
+		return err;
+
+	// Read the size of memory space required for blob
+
+	size_t required_size = 0;  // value will default to 0, if not set yet in NVS
+	err = nvs_get_blob(my_handle, key, NULL, &required_size);
+	if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
+		return err;
+	// Help me vai to print not getting it how to set the logic
+
+	char *value_read = malloc(required_size);
+
+	err = nvs_get_blob(my_handle, key, value_read, &required_size);
+	if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
+		return err;
+
+	printf("Reading Value from NVS for the key: %s and the Value : %.*s\n", key,
+			(int) required_size, value_read);
+
+//
+//	if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
+//		return err;
+
+	free(value_read);
+	// Close
+	nvs_close(my_handle);
+	return ESP_OK;
+}
+
+esp_err_t NVS_set_wifi_credential(char *ssid, char *pass, uint8_t ssid_len, uint8_t pass_len) {
+	esp_err_t rc;
+	rc = NVS_store_key(WIFI_SSID_KEY, ssid, ssid_len);
+	if (rc == ESP_OK) {
+		printf("SSID STORED SUCCESS: %s LEN: %d\n", ssid, ssid_len);
+	} else {
+		printf("SSID STORED ERROR: %s\n", ssid);
+		return rc;
+	}
+	rc = NVS_store_key(WIFI_PASS_KEY, pass, pass_len);
+	if (rc == ESP_OK) {
+		printf("SSID STORED SUCCESS: %s LEN: %d\n", pass, pass_len);
+	} else {
+		printf("SSID STORED ERROR: %s\n", pass);
+		return rc;
+	}
+
+	return ESP_OK;
+}
+esp_err_t NVS_get_wifi_credential(char *ssid, char *pass) {
+
+	esp_err_t read_my_result_ssid = NVS_read_key(WIFI_SSID_KEY);
+
+	if (read_my_result_ssid == ESP_OK) {
+		printf("Reading SSID from NVS is successful\n");
+	} else {
+		printf("Reading SSID from NVS is unsuccessful\n");
+	}
+
+	read_my_result_ssid = NVS_read_key(WIFI_PASS_KEY);
+
+	if (read_my_result_ssid == ESP_OK) {
+		printf("Reading pass from NVS is successful\n");
+	} else {
+		printf("Reading pass from NVS is unsuccessful\n");
+	}
+
+	return ESP_OK;
+}
+

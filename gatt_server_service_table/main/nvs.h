@@ -23,11 +23,15 @@
 #include "string.h"
 
 #define STORAGE_NAMESPACE "storage"
+#define WIFI_SSID_KEY "WSSID"
+#define WIFI_PASS_KEY "WPASS"
 
 void  nvs_init(void);
 esp_err_t save_led_states(uint8_t led_state);
-esp_err_t nvs_variable_save(char* value,  char* key , size_t length );
-esp_err_t value_read(char* value,  char* key );
+esp_err_t NVS_store_key(char* key,  char* value , size_t length );
+esp_err_t NVS_read_key(char* key );
+esp_err_t NVS_set_wifi_credential(char *ssid, char *pass, uint8_t ssid_len, uint8_t pass_len);
+esp_err_t NVS_get_wifi_credential(char* ssid, char* pass );
 
 
 #endif /* MAIN_NVS_H_ */
