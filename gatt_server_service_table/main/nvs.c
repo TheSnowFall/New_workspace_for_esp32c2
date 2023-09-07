@@ -40,7 +40,7 @@ esp_err_t NVS_store_key(char *key, char *value, size_t length) {
 	return ESP_OK;
 }
 
-esp_err_t NVS_read_key(char *key) {
+esp_err_t NVS_read_key(char *key, char* return_buff) {
 
 	nvs_handle_t my_handle;
 	esp_err_t err;
@@ -64,8 +64,10 @@ esp_err_t NVS_read_key(char *key) {
 	if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
 		return err;
 
-	printf("Reading Value from NVS for the key: %s and the Value : %.*s\n", key,
+	printf("[NVS.C][NVS_READ_KEY] Reading Value from NVS for the key: %s and the Value : %.*s\n", key,
 			(int) required_size, value_read);
+
+	memcpy(return_buff,value_read,required_size);
 
 //
 //	if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
@@ -81,38 +83,45 @@ esp_err_t NVS_set_wifi_credential(char *ssid, char *pass, uint8_t ssid_len, uint
 	esp_err_t rc;
 	rc = NVS_store_key(WIFI_SSID_KEY, ssid, ssid_len);
 	if (rc == ESP_OK) {
-		printf("SSID STORED SUCCESS: %s LEN: %d\n", ssid, ssid_len);
+		printf("[NVS.C][NVS_SET_WIFI_CRED.] SSID STORED SUCCESS: %s LEN: %d\n", ssid, ssid_len);
+
 	} else {
-		printf("SSID STORED ERROR: %s\n", ssid);
+		printf("[NVS.C][NVS_SET_WIFI_CRED.] SSID STORED ERROR: %s\n", ssid);
 		return rc;
 	}
 	rc = NVS_store_key(WIFI_PASS_KEY, pass, pass_len);
 	if (rc == ESP_OK) {
-		printf("SSID STORED SUCCESS: %s LEN: %d\n", pass, pass_len);
+		printf("[NVS.C][NVS_SET_WIFI_CRED.] SSID STORED SUCCESS: %s LEN: %d\n", pass, pass_len);
 	} else {
-		printf("SSID STORED ERROR: %s\n", pass);
+		printf("[NVS.C][NVS_SET_WIFI_CRED.] SSID STORED ERROR: %s\n", pass);
 		return rc;
 	}
 
 	return ESP_OK;
 }
+
+
 esp_err_t NVS_get_wifi_credential(char *ssid, char *pass) {
-
-	esp_err_t read_my_result_ssid = NVS_read_key(WIFI_SSID_KEY);
-
-	if (read_my_result_ssid == ESP_OK) {
-		printf("Reading SSID from NVS is successful\n");
-	} else {
-		printf("Reading SSID from NVS is unsuccessful\n");
-	}
-
-	read_my_result_ssid = NVS_read_key(WIFI_PASS_KEY);
+//char ssid_buff[64]={0,};
+//char pass_buff[64]={0,};
+	esp_err_t read_my_result_ssid = NVS_read_key(WIFI_SSID_KEY,ssid);
 
 	if (read_my_result_ssid == ESP_OK) {
-		printf("Reading pass from NVS is successful\n");
+		printf("[NVS.C][NVS_GET_WIFI_CRED.] Reading SSID from NVS is successful\n");
 	} else {
-		printf("Reading pass from NVS is unsuccessful\n");
+		printf("[NVS.C][NVS_GET_WIFI_CRED.] Reading SSID from NVS is unsuccessful\n");
 	}
+
+	read_my_result_ssid = NVS_read_key(WIFI_PASS_KEY,pass);
+
+	if (read_my_result_ssid == ESP_OK) {
+		printf("[NVS.C][NVS_GET_WIFI_CRED.] Reading pass from NVS is successful\n");
+	} else {
+		printf("[NVS.C][NVS_GET_WIFI_CRED.] Reading pass from NVS is unsuccessful\n");
+	}
+
+	printf("[NVS.C][NVS_GET_WIFI_CRED.] Reading Data From NVS: \n\t\t<%s> :<%s>\n\t\t<%s> :<%s>\n", WIFI_SSID_KEY, ssid,WIFI_PASS_KEY,pass);
+
 
 	return ESP_OK;
 }

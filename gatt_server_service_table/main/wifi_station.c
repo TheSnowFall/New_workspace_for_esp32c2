@@ -7,6 +7,10 @@ EventGroupHandle_t s_wifi_event_group;
 
 static int s_retry_num = 0;
 
+
+
+
+
 void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
 		void *event_data) {
 	if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
@@ -47,8 +51,19 @@ void wifi_init_sta(void) {
 	ESP_ERROR_CHECK(
 			esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, &instance_got_ip));
 
-	wifi_config_t wifi_config = { .sta = { .ssid = EXAMPLE_ESP_WIFI_SSID,
-			.password = EXAMPLE_ESP_WIFI_PASS,
+
+
+	/*
+	 * NVS SSID AND PASS Read
+	 * Data allaready saved in NVS from BLE Rechive event in CJSON
+	 *
+	 */
+	uint8_t ss[64]= {0,},pas[64]={0,};
+			NVS_get_wifi_credential((char*)ss,(char*)pas);
+			printf("[WIFI_ST.C][WIFI_INIT_STA] Reading Data From NVS: \n\t\t<%s> :<%s>\n", ss,pas);
+
+	wifi_config_t wifi_config = { .sta = { .ssid = "",
+			.password = "",
 			/* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
 			 * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
 			 * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
@@ -56,6 +71,14 @@ void wifi_init_sta(void) {
 			 */
 			.threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
 			.sae_pwe_h2e = WPA3_SAE_PWE_BOTH, }, };
+
+	memcpy(wifi_config.sta.ssid,ss,sizeof(ss));
+	memcpy(wifi_config.sta.password,pas,sizeof(pas));
+
+
+
+	printf("[WIFI_ST.C][WIFI_INIT_STA] Reading Data From NVS: \n\t\t<%s> :<%s>\n\t\t<%s> :<%s>\n", ss, wifi_config.sta.ssid,pas,wifi_config.sta.password);
+
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
 	ESP_ERROR_CHECK(esp_wifi_start());

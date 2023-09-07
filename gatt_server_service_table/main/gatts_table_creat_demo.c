@@ -1,5 +1,3 @@
-
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -7,6 +5,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_bt.h"
+#include "esp_mac.h"
 
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
@@ -25,7 +24,7 @@
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
 #define ESP_APP_ID                  0x55
-#define SAMPLE_DEVICE_NAME          "TUSHAR'S_GATTS_DEMO"
+#define SAMPLE_DEVICE_NAME          "SLA S-Plug"
 #define SVC_INST_ID                 0
 
 /* The max length of characteristic value. When the GATT client performs a write or prepare write operation,
@@ -51,7 +50,7 @@ static prepare_type_env_t prepare_write_env;
 
 //#define CONFIG_SET_RAW_ADV_DATA
 #ifdef CONFIG_SET_RAW_ADV_DATA
-static uint8_t raw_adv_data[] = {
+static uint8_t raw_adv_data[26] = {
         /* flags */
         0x02, 0x01, 0x06,
         /* tx power*/
@@ -59,7 +58,7 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name */
-        0x0f, 0x09, 'E', 'S', 'P', '_', 'G', 'A', 'T', 'T', 'S', '_', 'D','E', 'M', 'O'
+		0x11, 0x09, 'S', 'L', 'A', '-', 'S', 'P', '0', '0', '0', '0', '0', '0'
 };
 static uint8_t raw_scan_rsp_data[] = {
         /* flags */
@@ -136,6 +135,12 @@ struct gatts_profile_inst {
     esp_bt_uuid_t descr_uuid;
 };
 
+
+
+
+
+
+
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 					esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 
@@ -146,6 +151,7 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
         .gatts_if = ESP_GATT_IF_NONE,       /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
     },
 };
+
 
 /* Service */
 static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FF;
@@ -207,6 +213,21 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
@@ -331,7 +352,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
-            esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
+        	uint8_t bt_mac[6]={0,};
+        	    esp_err_t ret1 = esp_read_mac(bt_mac,ESP_MAC_BT);
+        	char BLE_slave_name[20]={0,};
+        	sprintf(BLE_slave_name, "%s-%02X%02X%02X",SAMPLE_DEVICE_NAME,bt_mac[3],bt_mac[4],bt_mac[5]);
+            esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(BLE_slave_name);
             if (set_dev_name_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
             }
@@ -419,19 +444,24 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_EXEC_WRITE_EVT");
            // printf("The Value: %.*s\n",(int)prepare_write_env.prepare_len, prepare_write_env.prepare_buf );
 
+
+            // added code to send data from buffer to ble_packet in cjson_parser
             char temp_buff[256]={0,};
             memcpy(temp_buff,prepare_write_env.prepare_buf,prepare_write_env.prepare_len);
 
             uint8_t result=BLE_packet_parser( (uint8_t*)temp_buff);
 
             if(result == 1){
-            	printf("All tasks inside Json Parsing successful\n") ;
+            	printf("[GATTS_TABLE_CREAT.C] [PROFILE_EVNT_HAND] [CASE:ESP_GATTS_WRITE_EVT] All tasks inside Json Parsing successful\n") ;
             }
             else{
-            	printf("Json Parsing unsuccessful\n");
+            	printf("[GATTS_TABLE_CREAT.C] [PROFILE_EVNT_HAND] [CASE:ESP_GATTS_WRITE_EVT] Json Parsing unsuccessful\n");
             }
             example_exec_write_event_env(&prepare_write_env, param);
             break;
+
+
+
         case ESP_GATTS_MTU_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
             break;
@@ -514,6 +544,37 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
     } while (0);
 }
 
+
+
+
+
+ void addBluetoothMacToAdvData() {
+    // Get the Bluetooth MAC address
+	 printf("===================================================\n") ;
+    uint8_t bt_mac[6]={0,};
+    esp_err_t ret = esp_read_mac(bt_mac,ESP_MAC_BT);
+
+    if (ret != ESP_OK) {
+        printf("[GATTS_TABLE_CREAT.C] [ADD_BLE_MAC>ADV]  BLE MAC get error\n") ;
+
+    }
+
+    else{
+
+    	 printf("[GATTS_TABLE_CREAT.C] [ADD_BLE_MAC>ADV] BT MAC is: %02x:%02x:%02x:%02x:%02x:%02x\n", bt_mac[0],bt_mac[1],bt_mac[2],bt_mac[3],bt_mac[4],bt_mac[5]) ;
+
+
+
+    }
+    //  last 6 bytes (BT_ADDR) to the advertising data
+//    for (int i = 0; i < 6; i++) {
+//        raw_adv_data[26 - 6 + i] = bt_mac[i];
+//    }
+}
+
+
+
+
 void app_main(void)
 {
     esp_err_t ret;
@@ -553,11 +614,18 @@ void app_main(void)
         return;
     }
 
+
+
+    //    my added code
+        addBluetoothMacToAdvData();
+
+
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
     if (ret){
         ESP_LOGE(GATTS_TABLE_TAG, "gatts register error, error code = %x", ret);
         return;
     }
+
 
     ret = esp_ble_gap_register_callback(gap_event_handler);
     if (ret){
@@ -577,10 +645,13 @@ void app_main(void)
 
 
 
-
-
     }
 
 
 
 }
+
+
+
+// My added code
+

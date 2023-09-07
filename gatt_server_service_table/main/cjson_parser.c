@@ -27,11 +27,10 @@ uint8_t BLE_packet_parser(uint8_t *buffer) {
 		ssid = cJSON_GetObjectItem(root, "ssid")->valuestring;
 	pass = cJSON_GetObjectItem(root, "pass")->valuestring;
 
-		printf("SSID LEN: %d, PASS LEN: %d\n",strlen(ssid), strlen(pass));
+		printf("[cJSON_PARSER.C][BLE_PACKET_PARSER]SSID LEN: %d, PASS LEN: %d\n",strlen(ssid), strlen(pass));
 
 		NVS_set_wifi_credential(ssid,pass,strlen(ssid),strlen(pass));
-		char ss[64],pas[64];
-		NVS_get_wifi_credential(ss,pas);
+
 
 
 	}
@@ -43,7 +42,7 @@ uint8_t BLE_packet_parser(uint8_t *buffer) {
 //        printf("Topic: %s\n", topic_item->valuestring);
 // }
 	else {
-		printf("JSON format is incorrect.\n");
+		printf("[cJSON_PARSER.C][BLE_PACKET_PARSER] JSON format is incorrect.\n");
 	}
 
 //        esp_err_t read_my_result = nvs_variable_read( "ssid" );
@@ -84,8 +83,8 @@ uint8_t BLE_packet_parser(uint8_t *buffer) {
 
 	cJSON_Delete(root);
 
-//	ESP_LOGI(WIFi_TAG, "ESP_WIFI_MODE_STA");
-//	wifi_init_sta();
+	ESP_LOGI(WIFi_TAG, "ESP_WIFI_MODE_STA");
+	wifi_init_sta();
 
 	return 1;
 }

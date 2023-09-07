@@ -29,7 +29,7 @@
 void  nvs_init(void);
 esp_err_t save_led_states(uint8_t led_state);
 esp_err_t NVS_store_key(char* key,  char* value , size_t length );
-esp_err_t NVS_read_key(char* key );
+esp_err_t NVS_read_key(char *key, char* return_buff);
 esp_err_t NVS_set_wifi_credential(char *ssid, char *pass, uint8_t ssid_len, uint8_t pass_len);
 esp_err_t NVS_get_wifi_credential(char* ssid, char* pass );
 
