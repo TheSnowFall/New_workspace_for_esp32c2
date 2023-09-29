@@ -1,15 +1,16 @@
 #include "nvs.h"
+#include "notification.h"
 
-//void nvs_init(void) {
-//	esp_err_t err = nvs_flash_init();
-//	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-//		// NVS partition was truncated and needs to be erased
-//		// Retry nvs_flash_init
-//		ESP_ERROR_CHECK(nvs_flash_erase());
-//		err = nvs_flash_init();
-//	}
-//	ESP_ERROR_CHECK(err);
-//}
+void nvs_init(void) {
+	esp_err_t err = nvs_flash_init();
+	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+		// NVS partition was truncated and needs to be erased
+		// Retry nvs_flash_init
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		err = nvs_flash_init();
+	}
+	ESP_ERROR_CHECK(err);
+}
 
 esp_err_t NVS_store_key(char *key, char *value, size_t length) {
 	nvs_handle_t my_handle;
@@ -37,6 +38,7 @@ esp_err_t NVS_store_key(char *key, char *value, size_t length) {
 
 	// Close
 	nvs_close(my_handle);
+	notification_for(NVS_resp_write_ok);
 	return ESP_OK;
 }
 

@@ -110,8 +110,7 @@ static int softap_get_current_connection_number(void)
     return 0;
 }
 
-static void ip_event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data)
+static void ip_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
     wifi_mode_t mode;
 
@@ -141,8 +140,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
     return;
 }
 
-static void wifi_event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data)
+static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t event_id, void* event_data)
 {
     wifi_event_sta_connected_t *event;
     wifi_event_sta_disconnected_t *disconnected_event;
@@ -425,7 +423,6 @@ static void example_event_callback(esp_blufi_cb_event_t event, esp_blufi_cb_para
     case ESP_BLUFI_EVENT_RECV_CUSTOM_DATA:
         BLUFI_INFO("Recv Custom Data %" PRIu32 "\n", param->custom_data.data_len);
         esp_log_buffer_hex("Custom Data", param->custom_data.data, param->custom_data.data_len);
-        printf("#####custom data print: %s\n " , param->custom_data.data );
         break;
 	case ESP_BLUFI_EVENT_RECV_USERNAME:
         /* Not handle currently */

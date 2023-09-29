@@ -1,3 +1,9 @@
 /.metadata/
 /gatt_server/build/
 /gatt_server_service_table/build/
+/blufi/build/
+/button_pressed_nvs_with_bluefi/build/
+/gatt_client_native_example/build/
+/power_measurement_by_interrupt/build/
+/station/build/
+/wifi_prov_mgr/build/

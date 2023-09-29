@@ -13,9 +13,11 @@
 #include "gatts_table_creat_demo.h"
 #include "esp_gatt_common_api.h"
 
+
 #include "cJSON.h"
 #include "cjson_parser.h"
 #include "wifi_station.h"
+#include "notification.h"
 
 #define GATTS_TABLE_TAG "GATTS_TABLE_DEMO"
 
@@ -217,18 +219,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event) {
@@ -352,8 +342,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
+
         	uint8_t bt_mac[6]={0,};
-        	    esp_err_t ret1 = esp_read_mac(bt_mac,ESP_MAC_BT);
+        	esp_err_t ret1 = esp_read_mac(bt_mac,ESP_MAC_BT);
         	char BLE_slave_name[20]={0,};
         	sprintf(BLE_slave_name, "%s-%02X%02X%02X",SAMPLE_DEVICE_NAME,bt_mac[3],bt_mac[4],bt_mac[5]);
             esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(BLE_slave_name);
@@ -399,28 +390,33 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+
                 if (heart_rate_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
                     uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
                     if (descr_value == 0x0001){
                         ESP_LOGI(GATTS_TABLE_TAG, "notify enable");
-                        uint8_t notify_data[15];
-                        for (int i = 0; i < sizeof(notify_data); ++i)
-                        {
-                            notify_data[i] = i % 0xff;
-                        }
+//                        uint8_t notify_data[15];
+//                        for (int i = 0; i < sizeof(notify_data); ++i)
+//                        {
+//                            notify_data[i] = i % 0xff;
+//                        }
+
+                        uint8_t* indicate_data=(uint8_t *)"This is a test data";
                         //the size of notify_data[] need less than MTU size
                         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                                                sizeof(notify_data), notify_data, false);
+                        					strlen((char*)indicate_data), indicate_data, true);
                     }else if (descr_value == 0x0002){
                         ESP_LOGI(GATTS_TABLE_TAG, "indicate enable");
-                        uint8_t indicate_data[15];
-                        for (int i = 0; i < sizeof(indicate_data); ++i)
-                        {
-                            indicate_data[i] = i % 0xff;
-                        }
+//                        uint8_t indicate_data[15];
+//                        for (int i = 0; i < sizeof(indicate_data); ++i)
+//                        {
+//                            indicate_data[i] = i % 0xff;
+//                        }
+
+                        uint8_t* indicate_data=(uint8_t *)"This is a test data";
                         //the size of indicate_data[] need less than MTU size
                         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                                            sizeof(indicate_data), indicate_data, true);
+                                            strlen((char*)indicate_data), indicate_data, true);
                     }
                     else if (descr_value == 0x0000){
                         ESP_LOGI(GATTS_TABLE_TAG, "notify/indicate disable ");
@@ -434,11 +430,13 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 if (param->write.need_rsp){
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
                 }
+
             }else{
                 /* handle prepare write */
                 example_prepare_write_event_env(gatts_if, &prepare_write_env, param);
             }
-      	    break;
+
+   	    break;
         case ESP_GATTS_EXEC_WRITE_EVT:
             // the length of gattc prepare write data must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_EXEC_WRITE_EVT");
@@ -459,7 +457,6 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             }
             example_exec_write_event_env(&prepare_write_env, param);
             break;
-
 
 
         case ESP_GATTS_MTU_EVT:
@@ -548,7 +545,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 
 
 
- void addBluetoothMacToAdvData() {
+void addBluetoothMacToAdvData() {
     // Get the Bluetooth MAC address
 	 printf("===================================================\n") ;
     uint8_t bt_mac[6]={0,};

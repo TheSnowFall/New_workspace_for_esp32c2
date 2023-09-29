@@ -62,6 +62,11 @@ extern const char *WIFi_TAG ;
 void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 void wifi_init_sta(void);
 void set_credential_frm_nvs();
+esp_err_t stop_wifi(void);
+esp_err_t discon_wifi(void) ;
+esp_err_t deinit_wifi(void);
+
+extern bool check_init_starting_status;
 
 
 #endif /* MAIN_WIFI_STATION_H_ */
