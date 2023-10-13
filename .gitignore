@@ -6,4 +6,6 @@
 /gatt_client_native_example/build/
 /power_measurement_by_interrupt/build/
 /station/build/
+/thing_shadow/build/
+
 /esp_nimble_test/build/
