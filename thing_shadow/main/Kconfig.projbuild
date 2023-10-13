@@ -9,7 +9,7 @@ menu "Example Configuration"
 
     config MQTT_BROKER_ENDPOINT
         string "Endpoint of the MQTT broker to connect to"
-        default "a1r0zs8txbyccm-ats.iot.ap-southeast-2.amazonaws.com"
+        default "test.mosquitto.org"
         help
             This example can be run with any MQTT broker, that supports server authentication.
 
