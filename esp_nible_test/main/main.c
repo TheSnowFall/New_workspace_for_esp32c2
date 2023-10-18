@@ -13,24 +13,34 @@
 #include "host/ble_hs.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
-
+#include "esp_system.h"
+#include "string.h"
+/*------------------our defined include------------------*/
 #include "debug_sp.h"
+#include "cjson_parser.h"
 
-#define DEVICE_NAME            "SP"
-#define FIRST_BUFF_SAVED 1
-#define FIRST_BUFF_EMPTY 0
+
+
+#define DEVICE_NAME            "SLA_SP_"
+#define ERROR_FOUND				0
+#define SUCCESS					1
+
 
 char *TAG = "sp-nim_ble";
+
 uint8_t ble_addr_type;
 char BLE_slave_name[20] = { 0, };
+
 /* callback buffer*/
 char cb_ble_buffer[512] = { 0, };
 uint8_t cb_buff_index = 0;
-uint8_t first_buff_saved_flag = FIRST_BUFF_EMPTY;
+
 
 void ble_app_advertise(void);
 
 // Write data to ESP32 defined as server
+
+
 static int device_write(uint16_t conn_handle, uint16_t attr_handle,
 		struct ble_gatt_access_ctxt *ctxt, void *arg) {
 
@@ -38,7 +48,7 @@ static int device_write(uint16_t conn_handle, uint16_t attr_handle,
 	struct os_mbuf *next_mbuf = SLIST_NEXT(current_mbuf, om_next);
 
 	/* --------------------my added code----------------------*/
-	memset(cb_ble_buffer, 0, sizeof(cb_ble_buffer));
+
 	strncpy(cb_ble_buffer, (char*) ctxt->om->om_data, ctxt->om->om_len);
 
 	while (next_mbuf != NULL) {
@@ -47,34 +57,54 @@ static int device_write(uint16_t conn_handle, uint16_t attr_handle,
 		next_mbuf = SLIST_NEXT(next_mbuf, om_next);
 
 	}
-	printf("\n");
-	debug_print_statement("WIFI", 2, "Another debug message");
 
-	printf("My cb_ble_array data: %s\n", cb_ble_buffer);
+	debug_print_statement("[NIMBLE][DEVICE_WRITE]", 1, " \nReceived JSON: %s\n" , cb_ble_buffer);
+	BLE_packet_parser((char*) cb_ble_buffer);
+
+
+	memset(cb_ble_buffer, 0, sizeof(cb_ble_buffer));
+
+
 
 	/* --------------------my added code----------------------*/
 
 	return 0;
 }
 
+
 // Read data from ESP32 defined as server
 static int device_read(uint16_t con_handle, uint16_t attr_handle,
 		struct ble_gatt_access_ctxt *ctxt, void *arg) {
-	os_mbuf_append(ctxt->om, "Data from the server",
+			os_mbuf_append(ctxt->om, "Data from the server",
 			strlen("Data from the server"));
 	return 0;
 }
 
+
 // Array of pointers to other service definitions
 // UUID - Universal Unique Identifier
-static const struct ble_gatt_svc_def gatt_svcs[] = { { .type =
-BLE_GATT_SVC_TYPE_PRIMARY, .uuid = BLE_UUID16_DECLARE(0x180), // Define UUID for device type
-		.characteristics = (struct ble_gatt_chr_def[] ) { { .uuid =
-						BLE_UUID16_DECLARE(0xFEF4),   // Define UUID for reading
-				.flags = BLE_GATT_CHR_F_READ, .access_cb = device_read },
-						{ .uuid = BLE_UUID16_DECLARE(0xDEAD), // Define UUID for writing
-								.flags = BLE_GATT_CHR_F_WRITE, .access_cb =
-										device_write }, { 0 } } }, { 0 } };
+static const struct ble_gatt_svc_def gatt_svcs[] = {
+
+		{ 		.type = BLE_GATT_SVC_TYPE_PRIMARY,
+				.uuid = BLE_UUID16_DECLARE(0x180), // Define UUID for device type
+				.characteristics = (struct ble_gatt_chr_def[] ) {
+					{
+						.uuid =BLE_UUID16_DECLARE(0xFEF4),   // Define UUID for reading
+						.flags = BLE_GATT_CHR_F_READ,
+						.access_cb = device_read
+					},
+
+					{ 	.uuid = BLE_UUID16_DECLARE(0xDEAD), // Define UUID for writing
+						.flags = BLE_GATT_CHR_F_WRITE,
+						.access_cb = device_write
+					},
+
+
+					{ 0 }
+																	}
+		},
+				{ 0 }
+														};
 
 // BLE event handling
 static int ble_gap_event(struct ble_gap_event *event, void *arg) {
@@ -90,6 +120,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 		// Advertise again after completion of the event
 	case BLE_GAP_EVENT_DISCONNECT:
 		ESP_LOGI("GAP", "BLE GAP EVENT DISCONNECTED");
+		ble_app_advertise();
 		break;
 	case BLE_GAP_EVENT_ADV_COMPLETE:
 		ESP_LOGI("GAP", "BLE GAP EVENT");
@@ -135,8 +166,8 @@ void ble_app_advertise(void) {
 	memset(&adv_params, 0, sizeof(adv_params));
 	adv_params.conn_mode = BLE_GAP_CONN_MODE_UND; // connectable or non-connectable
 	adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN; // discoverable or non-discoverable
-	ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
-			ble_gap_event, NULL);
+
+	ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event, NULL);
 }
 
 // The application
@@ -151,8 +182,16 @@ void host_task(void *param) {
 }
 
 void app_main() {
-	nvs_flash_init();                          // 1 - Initialize NVS flash using
-	// esp_nimble_hci_and_controller_init();      // 2 - Initialize ESP controller
+
+
+		esp_err_t err = nvs_flash_init();
+		if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {  // 1 - Initialize NVS flash using
+			ESP_ERROR_CHECK(nvs_flash_erase());
+			err = nvs_flash_init();
+		}
+//		ESP_ERROR_CHECK(err);
+
+
 	nimble_port_init();                        // 3 - Initialize the host stack
 	ble_svc_gap_device_name_set(get_device_name()); // 4 - Initialize NimBLE configuration - server name
 	ble_svc_gap_init();     // 4 - Initialize NimBLE configuration - gap service
